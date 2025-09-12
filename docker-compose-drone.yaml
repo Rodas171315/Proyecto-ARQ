@@ -1,0 +1,41 @@
+version: "4"
+
+services:
+  drone:
+    container_name: drone
+    image: 'drone/drone:2'
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - 80:80
+    volumes:
+      - drone-data:/data
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - '/etc/localtime:/etc/localtime:ro'
+    networks:
+      - drone-net
+  drone-agent:
+    container_name: drone-agent
+    image: drone/drone-runner-docker:1
+    restart: unless-stopped
+    command: agent
+    env_file:
+      - .env
+    ports:
+      - 4000:3000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - '/etc/localtime:/etc/localtime:ro'
+    depends_on:
+      - drone
+    networks:
+      - drone-net
+
+volumes:
+  drone-data:
+
+networks:
+  drone-net:
+    name: drone-network
+    driver: bridge
